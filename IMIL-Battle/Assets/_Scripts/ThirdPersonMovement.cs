@@ -20,6 +20,11 @@ public class ThirdPersonMovement : MonoBehaviour
     #region JUMP FIELD
     [SerializeField] private float _jumpHeight = 1.5f;
     #endregion
+    #region ANIMATION 
+    [SerializeField] private Animator _anim;
+    [SerializeField] private Vector2 _currentAnimationBlendVector, _animationVelocity;
+    [SerializeField] private float _animationSmoothTime = 0.1f;
+    #endregion
     private void Update() 
     {
         Move();
@@ -30,19 +35,24 @@ public class ThirdPersonMovement : MonoBehaviour
         //Get mouse input
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
+
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+        //Rotate by mouse input
+        float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + _camera.eulerAngles.y;
+        float angle = Mathf.SmoothDampAngle(this.transform.eulerAngles.y, targetAngle, ref _turnSmoothVelocity, _turnSmoothTime);   
+        this.transform.rotation = Quaternion.Euler(0f, targetAngle, 0f);
+        Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
 
         if (direction.magnitude >= 0.1f)
         {
-            //Rotate by mouse input
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + _camera.eulerAngles.y;
-            float angle = Mathf.SmoothDampAngle(this.transform.eulerAngles.y, targetAngle, ref _turnSmoothVelocity, _turnSmoothTime);   
-            this.transform.rotation = Quaternion.Euler(0f, targetAngle, 0f);
-            Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-
             //Move
-            _controller.Move(moveDir.normalized * _speed * Time.deltaTime);
+            _controller.Move(moveDir.normalized * _speed * Time.deltaTime);   
         }
+
+        //Animation
+        _currentAnimationBlendVector = Vector2.SmoothDamp(_currentAnimationBlendVector, new Vector2(horizontal, vertical), ref _animationVelocity, _animationSmoothTime);
+        _anim.SetFloat("MoveX", _currentAnimationBlendVector.x);
+        _anim.SetFloat("MoveZ", _currentAnimationBlendVector.y);
     }
     private void ApplyGravityAndJump() 
     {
