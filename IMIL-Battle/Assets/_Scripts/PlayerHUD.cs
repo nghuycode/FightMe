@@ -21,6 +21,8 @@ public class PlayerHUD : MonoBehaviour
         }
     }
     [SerializeField] private Slider _healthBarSlider, _staminaBarSlider;
+    [SerializeField] private Image _healthBarFill;
+    [SerializeField] private Gradient _gradient;
     [SerializeField] private vThirdPersonController _cc;
     private void Awake() 
     {
@@ -44,6 +46,7 @@ public class PlayerHUD : MonoBehaviour
             _healthBarSlider.onValueChanged.Invoke(_healthBarSlider.value);
         }
         _healthBarSlider.value = Mathf.Lerp(_healthBarSlider.value, _cc.currentHealth, 2f * Time.fixedDeltaTime);
+        _healthBarFill.color =  _gradient.Evaluate(_healthBarSlider.normalizedValue);
     }
     private void UpdateStaminaBar()
     {
